@@ -1,4 +1,4 @@
-/* Painel do barbeiro — controla os atendimentos do dia. */
+/* Painel do barbeiro — protegido por senha (verificada no servidor). Controla os atendimentos do dia. */
 (function () {
   'use strict';
 
@@ -31,6 +31,108 @@
 
   var current = { state: null, stats: null };
   var filter = 'all';
+
+  /* ---------- Login ---------- */
+
+  var AUTH_KEY = Fila.config.storageKeys.adminAuth;
+  var login = {
+    view: $('#login-view'),
+    adminView: $('#admin-view'),
+    form: $('#login-form'),
+    input: $('#password-input'),
+    error: $('#login-error'),
+    remember: $('#remember-input'),
+    submit: $('#login-form button[type="submit"]'),
+    logout: $('#logout-btn'),
+  };
+  var started = false;
+
+  function savedPassword() {
+    try {
+      return localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+  function savePassword(pw, remember) {
+    try {
+      clearPassword();
+      (remember ? localStorage : sessionStorage).setItem(AUTH_KEY, pw);
+    } catch (e) {
+      /* sem armazenamento: o barbeiro digita a senha de novo ao recarregar */
+    }
+  }
+  function clearPassword() {
+    try {
+      localStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem(AUTH_KEY);
+    } catch (e) {
+      /* ignora */
+    }
+  }
+
+  function showLogin(message) {
+    login.adminView.hidden = true;
+    login.logout.hidden = true;
+    login.view.hidden = false;
+    login.error.textContent = message || '';
+    login.error.hidden = !message;
+    login.input.value = '';
+    login.input.focus();
+  }
+
+  function showPanel() {
+    login.view.hidden = true;
+    login.adminView.hidden = false;
+    login.logout.hidden = false;
+    if (!started) {
+      started = true;
+      ui.connectQueue(
+        function (state, settings, stats) {
+          current.state = state;
+          current.stats = stats;
+          render();
+        },
+        {
+          pollMs: Fila.config.adminPollIntervalMs,
+          onAuthExpired: function () {
+            clearPassword();
+            repo.logout();
+            showLogin('A senha foi alterada. Entre novamente.');
+          },
+        },
+      );
+    } else {
+      repo.refresh();
+    }
+  }
+
+  function attempt(pw, remember, silent) {
+    login.submit.disabled = true;
+    return repo.login(pw).then(function (res) {
+      login.submit.disabled = false;
+      if (res.ok) {
+        savePassword(pw, remember);
+        showPanel();
+      } else {
+        clearPassword();
+        showLogin(silent && res.error !== 'NETWORK' ? '' : res.message);
+      }
+    });
+  }
+
+  login.form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pw = login.input.value;
+    if (!pw) return showLogin('Digite a senha.');
+    attempt(pw, login.remember.checked, false);
+  });
+
+  login.logout.addEventListener('click', function () {
+    clearPassword();
+    repo.logout();
+    showLogin('');
+  });
 
   /* ---------- Ações ---------- */
 
@@ -176,9 +278,21 @@
     });
   }
 
-  ui.connectQueue(function (state, settings, stats) {
-    current.state = state;
-    current.stats = stats;
-    render();
-  });
+  // Entra direto se a senha já estiver salva neste aparelho.
+  var stored = savedPassword();
+  if (stored) {
+    var remembered = false;
+    try {
+      remembered = !!localStorage.getItem(AUTH_KEY);
+    } catch (e) {
+      remembered = false;
+    }
+    login.view.hidden = false;
+    login.submit.textContent = 'Entrando…';
+    attempt(stored, remembered, true).then(function () {
+      login.submit.textContent = 'Entrar';
+    });
+  } else {
+    showLogin('');
+  }
 })();

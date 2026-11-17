@@ -53,7 +53,7 @@
 
   /** Chave de comparação: sem acentos, minúsculas e espaços normalizados. */
   function normalizeNameKey(raw) {
-    return raw.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+    return raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
   }
 
   var VALID_NAME = /^[\p{L}][\p{L}' .-]*$/u;

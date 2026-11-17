@@ -1,81 +1,70 @@
 # Fila de Atendimento — Studio Anadison O Mágico
 
-Lista de atendimento diária da barbearia, feita em **HTML, CSS e JavaScript puros**:
-sem build, sem framework e sem instalar nada. Pronto para o **GitHub Pages**.
+Lista de atendimento diária da barbearia, feita em **HTML, CSS e JavaScript puros**
+(hospedada no **GitHub Pages**), com os dados guardados numa **planilha do Google**
+para que todos os aparelhos vejam a mesma lista.
 
-- Página principal: `https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/`
-  botão "Cadastrar nome" (abre uma janela para digitar o nome completo) + lista na ordem
-  de cadastro, com um checkbox em cada nome.
-  Marcou → o nome fica riscado (atendimento concluído). Desmarcou → volta ao normal.
-  A lixeira ao lado de cada nome remove o cliente (com confirmação) e libera a vaga.
-- Painel do barbeiro (opcional): `https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/admin/`
-  resumo do dia, remover cliente, adicionar manualmente e limpar a lista.
-  Se não for usar, basta apagar a pasta `admin`.
+| Página | Endereço | Quem usa | O que pode fazer |
+| --- | --- | --- | --- |
+| Lista | `https://SEU-USUARIO.github.io/REPOSITORIO/` | Clientes (QR Code) | Ver a lista e cadastrar o próprio nome |
+| Painel | `https://SEU-USUARIO.github.io/REPOSITORIO/admin/` | Barbeiro (com senha) | Marcar atendidos, remover, cadastrar e limpar a lista |
+
+## Primeira configuração
+
+Siga o **[GUIA-CONFIGURACAO.md](GUIA-CONFIGURACAO.md)** (≈10 minutos): criar a planilha,
+colar o script, publicar e colar a URL em `assets/js/config.js`.
+
+Sem essa URL o site funciona em **modo demonstração** (dados só no navegador; senha `demo`).
+
+> ⚠️ **Não coloque a senha real no `Code.gs` deste repositório**, ele é público no GitHub.
+> A senha é definida apenas no editor do Apps Script, dentro da sua conta Google.
 
 ## Publicar no GitHub Pages
 
-1. Crie um repositório no GitHub (ex.: `fila-studio`).
-2. Envie **todo o conteúdo desta pasta** para a raiz do repositório
-   (pelo site: *Add file → Upload files*, arrastando as pastas `admin` e `assets` e os arquivos soltos).
-3. No repositório, vá em **Settings → Pages**.
-4. Em *Build and deployment*, escolha **Deploy from a branch**, branch **main**, pasta **/ (root)** e salve.
-5. Em 1 ou 2 minutos o endereço aparece no topo da mesma tela. Use esse link no QR Code.
+1. Envie o conteúdo desta pasta para a raiz do repositório (incluindo o arquivo `.nojekyll`).
+2. **Settings → Pages → Deploy from a branch → main → / (root)**.
 
-O arquivo `.nojekyll` evita que o GitHub processe os arquivos; deixe-o no repositório.
+## Como funciona
 
-## Testar no computador
+```
+Celulares dos clientes ─┐                       ┌─ Planilha "Fila"
+                        ├──► Google Apps Script ─┤  (uma linha por nome)
+Celular do barbeiro ────┘   (regras + senha)     └─ Zera a cada novo dia
+```
 
-Basta abrir o `index.html` no navegador (duplo clique). Para o painel, abra `admin/index.html`.
+- O site consulta a planilha a cada **6 s** (painel: 4 s) e pausa quando a aba fica em segundo plano.
+- **Segurança no servidor:** marcar, remover e limpar exigem a senha, verificada pelo script.
+  A página do cliente não tem esses botões e, mesmo que alguém altere o código no navegador,
+  o Google recusa a ação.
+- Regras no servidor: limite de 30 por dia, nome e sobrenome obrigatórios para clientes,
+  sem nomes repetidos (ignora acentos), apenas letras (bloqueia fórmulas na planilha).
+- 10 senhas erradas seguidas bloqueiam o painel por 5 minutos.
+- No painel, marcar/remover aparece na hora e é confirmado com a planilha em seguida
+  (se falhar, a tela volta ao estado anterior e avisa).
+- Sem internet, aparece um aviso "Sem conexão com a lista" e o site tenta de novo sozinho.
 
 ## Estrutura
 
 ```
-index.html               Página pública (clientes)
-admin/index.html         Painel do barbeiro
+index.html                   Página do cliente (lista + cadastro)
+admin/index.html             Painel do barbeiro (login + gerenciamento)
+google-apps-script/Code.gs   Script que transforma a planilha em API
+GUIA-CONFIGURACAO.md         Passo a passo da planilha
 assets/
-├─ css/styles.css        Todo o visual (paleta, layout mobile first, animações)
-├─ img/                  Logo original, símbolo "AM" e favicons
+├─ css/styles.css            Visual (mobile first)
+├─ img/                      Logo, símbolo e favicons
 └─ js/
-   ├─ config.js          Nome da barbearia, limite de 30 vagas, chaves de armazenamento
-   ├─ utils.js           Datas em português, validação e formatação de nomes
-   ├─ icons.js           Ícones Lucide embutidos (funciona offline)
-   ├─ rules.js           Regras de negócio da fila (funções puras)
-   ├─ repository.js      Persistência em localStorage
-   ├─ ui.js              Componentes: toast, modal, progresso, indicadores, lista, formulário
-   ├─ public.js          Página principal: cadastro, lista e checkbox
-   └─ admin.js           Comportamento do painel do barbeiro
+   ├─ config.js              URL da planilha, nome da barbearia, intervalos
+   ├─ repository.js          Comunicação com a planilha (e modo demonstração)
+   ├─ rules.js / utils.js    Regras e validações (no aparelho, para resposta rápida)
+   ├─ ui.js                  Componentes: janelas, avisos, lista
+   ├─ public.js              Página do cliente
+   ├─ admin.js               Painel do barbeiro
+   └─ icons.js               Ícones Lucide embutidos
 ```
 
-Para trocar o nome exibido ou o limite de vagas, edite `assets/js/config.js`.
+## Alterações comuns
 
-## Regras implementadas
-
-- Limite de 30 inscrições por dia; o formulário bloqueia ao lotar.
-- Ordem de cadastro preservada; a numeração exibida é a posição na lista (se ajusta ao remover um nome).
-- A página pública exige nome e sobrenome; o barbeiro pode adicionar só o primeiro nome.
-- Nomes duplicados são bloqueados, sem diferenciar acentos, maiúsculas ou espaços.
-- Marcar como atendido **não** libera vaga; remover o cliente libera.
-- Ao marcar o checkbox, o nome fica riscado e com aparência discreta; continua na lista.
-- Novo dia → lista vazia automaticamente: ao abrir a página e também com ela aberta
-  na virada da meia-noite (verificação a cada minuto, pelo horário do aparelho).
-- Dados corrompidos → cópia de segurança em `studio-anadison:corrupted-backup` e fila nova, com aviso.
-- Nomes são sempre exibidos como texto (proteção contra injeção de código).
-
-## ⚠️ Limitação do localStorage
-
-Os dados ficam **somente no navegador/aparelho onde foram salvos**.
-O celular de um cliente **não** enxerga a fila de outro celular, nem a do barbeiro.
-Nesta versão, o uso que funciona de verdade é **um aparelho único na barbearia**
-(ex.: tablet no balcão com a página pública e o painel abertos em abas).
-Abas do mesmo navegador se atualizam sozinhas.
-
-O painel `/admin/` não tem senha: qualquer pessoa que souber o endereço o abre,
-mas só altera os dados do próprio aparelho. A página pública não tem link para o painel.
-
-## Próximo passo: banco de dados
-
-Toda a leitura e gravação passa por `assets/js/repository.js`. Para compartilhar a fila
-entre aparelhos (ex.: Supabase com tempo real), crie outro objeto com os mesmos métodos
-(`getState`, `addClient`, `setServed`, `removeClient`, `resetQueue`, `subscribe`…)
-e troque a última linha do arquivo. As páginas e componentes não precisam mudar.
-Nessa etapa, adicione também login no painel do barbeiro.
+- **Nome exibido:** `businessName` em `assets/js/config.js`.
+- **Senha, limite diário, quem pode cadastrar:** no topo do script, no editor do Apps Script
+  (depois publique uma nova versão — veja o guia).

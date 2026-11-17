@@ -915,6 +915,33 @@ a {
   color: var(--silver-500);
 }
 
+/* Indicador de atendido na visão do cliente (somente leitura) */
+.client__done {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--success-soft);
+  font-size: 14px;
+  color: #6ee7b7;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s var(--ease-out);
+}
+.client[data-status='served'] .client__done {
+  opacity: 1;
+  transform: none;
+}
+.page-public .client {
+  min-height: 56px;
+  padding-left: 12px;
+}
+
 /* Checkbox grande de atendimento */
 .check {
   display: grid;
@@ -1034,7 +1061,12 @@ a {
 }
 
 .admin-summary {
+  order: 2;
   padding: 20px;
+}
+
+.admin-list {
+  order: 1;
 }
 
 .summary-date {
@@ -1172,6 +1204,81 @@ a {
   .admin-list {
     order: 1;
   }
+}
+
+/* ---------- Avisos fixos (modo demonstração / sem conexão) ---------- */
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) 16px 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+}
+.banner .icon {
+  margin-top: 2px;
+  font-size: 14px;
+}
+.banner code {
+  font-size: 11px;
+}
+.banner--info {
+  background: rgb(255 255 255 / 0.05);
+  color: var(--silver-300);
+}
+.banner--warning {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  background: rgb(252 211 77 / 0.12);
+  color: var(--warning);
+}
+
+/* ---------- Login do barbeiro ---------- */
+.login-view {
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
+.login-card {
+  padding: 24px 20px;
+  text-align: center;
+}
+.login-card__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: var(--graphite-800);
+  font-size: 22px;
+  color: var(--silver-200);
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+  text-align: left;
+}
+.login-form .field-error {
+  margin-top: -4px;
+}
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--silver-400);
+  cursor: pointer;
+}
+.remember input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--white);
 }
 
 /* ---------- Toasts ---------- */

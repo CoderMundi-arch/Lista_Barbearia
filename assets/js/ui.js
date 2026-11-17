@@ -249,14 +249,22 @@
    * Card e lista de atendimento
    * ===================================================================== */
 
-  function createCard() {
+  function createCard(mode) {
     var li = document.createElement('li');
     li.className = 'client';
-    li.innerHTML =
-      '<button type="button" class="check" role="checkbox" data-action="toggle">' + icon('check', 'check__icon', 3) + '</button>' +
-      '<span class="client__num"></span>' +
-      '<div class="client__body"><p class="client__name"><span class="strike"></span></p><div class="client__meta"></div></div>' +
-      '<button type="button" class="icon-btn icon-btn--danger" data-action="remove">' + icon('trash-2') + '</button>';
+    if (mode === 'admin') {
+      li.innerHTML =
+        '<button type="button" class="check" role="checkbox" data-action="toggle">' + icon('check', 'check__icon', 3) + '</button>' +
+        '<span class="client__num"></span>' +
+        '<div class="client__body"><p class="client__name"><span class="strike"></span></p><div class="client__meta"></div></div>' +
+        '<button type="button" class="icon-btn icon-btn--danger" data-action="remove">' + icon('trash-2') + '</button>';
+    } else {
+      // Visão do cliente: somente leitura, sem checkbox nem lixeira.
+      li.innerHTML =
+        '<span class="client__num"></span>' +
+        '<div class="client__body"><p class="client__name"><span class="strike"></span></p><div class="client__meta"></div></div>' +
+        '<span class="client__done" aria-hidden="true">' + icon('check', '', 3) + '</span>';
+    }
     return li;
   }
 
@@ -286,6 +294,10 @@
     li.querySelector('.client__meta').innerHTML = meta.join('');
 
     var check = li.querySelector('.check');
+    if (!check) {
+      li.querySelector('.strike').setAttribute('aria-label', client.name + (served ? ', atendido' : ', aguardando'));
+      return;
+    }
     check.setAttribute('aria-checked', String(served));
     check.setAttribute('aria-label', served ? 'Desmarcar atendimento de ' + client.name : 'Marcar ' + client.name + ' como atendido');
     if (served && !wasServed) {
@@ -317,7 +329,7 @@
       var li = existing[client.id];
       if (li) delete existing[client.id];
       else {
-        li = createCard();
+        li = createCard(options.mode);
         li.classList.add('is-new');
       }
       updateCard(li, client, options.mode, {
@@ -400,23 +412,67 @@
    * Conexão da página com o repositório
    * ===================================================================== */
 
+  /* =====================================================================
+   * Avisos fixos (sem conexão / modo demonstração)
+   * ===================================================================== */
+
+  function showBanner(id, html, tone) {
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = id;
+      el.className = 'banner banner--' + (tone || 'info');
+      el.setAttribute('role', 'status');
+      document.body.insertBefore(el, document.body.firstChild);
+    }
+    el.innerHTML = html;
+    el.hidden = false;
+  }
+
+  function hideBanner(id) {
+    var el = document.getElementById(id);
+    if (el) el.hidden = true;
+  }
+
+  /* =====================================================================
+   * Conexão da página com o repositório
+   * ===================================================================== */
+
   /**
-   * Carrega o estado, escuta mudanças e verifica a virada do dia.
+   * Carrega a lista, escuta mudanças, busca atualizações periodicamente e trata a virada do dia.
    * @param {(state:any, settings:any, stats:any)=>void} onChange
+   * @param {{pollMs?: number, onAuthExpired?: () => void}} [options]
    */
-  function connectQueue(onChange) {
+  function connectQueue(onChange, options) {
+    options = options || {};
     var repo = Fila.repository;
-    var settings = { maxClientsPerDay: config.maxClientsPerDay };
+    var settings = { maxClientsPerDay: config.maxClientsPerDay, allowPublicRegistration: true };
 
     function handle(state) {
       onChange(state, settings, Fila.rules.computeStats(state, settings));
+    }
+
+    if (repo.mode === 'demo') {
+      showBanner(
+        'demo-banner',
+        icon('info') +
+          '<span><strong>Modo demonstração:</strong> os nomes ficam só neste navegador. ' +
+          'Configure a planilha em <code>assets/js/config.js</code>.</span>',
+        'info',
+      );
     }
 
     repo.subscribeNotices(function (notice) {
       if (notice.type === 'recovered-from-corruption') {
         toast('warning', 'Dados da fila recuperados', 'Encontramos informações inválidas salvas e iniciamos uma fila nova.');
       } else if (notice.type === 'new-day') {
-        toast('info', 'Novo dia, nova fila', 'A lista de hoje começou vazia.');
+        toast('info', 'Novo dia, nova lista', 'A lista de hoje começou vazia.');
+      } else if (notice.type === 'offline') {
+        showBanner('net-banner', icon('triangle-alert') + '<span>Sem conexão com a lista. Tentando novamente…</span>', 'warning');
+      } else if (notice.type === 'online') {
+        hideBanner('net-banner');
+      } else if (notice.type === 'auth-expired' && options.onAuthExpired) {
+        options.onAuthExpired();
       }
     });
     repo.subscribe(handle);
@@ -427,14 +483,22 @@
       document.body.classList.add('is-ready');
     });
 
-    function check() {
-      repo.ensureCurrentDay();
+    // Atualização periódica (pausa quando a aba está em segundo plano).
+    var interval = repo.mode === 'remote' ? options.pollMs || config.pollIntervalMs : config.dayCheckIntervalMs;
+    function tick() {
+      if (document.visibilityState !== 'visible') return;
+      repo.ensureCurrentDay().then(function () {
+        return repo.getSettings && repo.mode === 'remote' ? repo.getSettings() : null;
+      }).then(function (s) {
+        if (s && (s.maxClientsPerDay !== settings.maxClientsPerDay || s.allowPublicRegistration !== settings.allowPublicRegistration)) {
+          settings = s;
+          repo.getState().then(handle);
+        }
+      });
     }
-    setInterval(check, config.dayCheckIntervalMs);
-    window.addEventListener('focus', check);
-    document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'visible') check();
-    });
+    setInterval(tick, interval);
+    window.addEventListener('focus', tick);
+    document.addEventListener('visibilitychange', tick);
   }
 
   /** Preenche textos fixos marcados com data-bind (nome da barbearia etc.). */
