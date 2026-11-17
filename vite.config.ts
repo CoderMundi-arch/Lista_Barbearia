@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
-// `npm run build`        → build padrão (dist/), pronto para Vercel/Netlify/hospedagem estática.
-// `npm run build:single` → um único index.html com tudo embutido (útil para prévias).
+// Base correta para GitHub Pages em repositorio de projeto.
 export default defineConfig(({ mode }) => ({
+  base: mode === 'single' ? './' : '/Lista_Barbearia/',
   plugins: [react(), tailwindcss(), ...(mode === 'single' ? [viteSingleFile()] : [])],
   build: {
     outDir: mode === 'single' ? 'dist-single' : 'dist',
