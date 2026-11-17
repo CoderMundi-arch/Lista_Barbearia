@@ -169,7 +169,7 @@
       var modal = openModal(
         '<button type="button" class="modal__close" data-cancel aria-label="Fechar">' + icon('x') + '</button>' +
           '<h2 id="name-title" class="modal__title">Cadastrar nome</h2>' +
-          '<p id="name-desc" class="modal__desc">Digite o nome e o sobrenome do cliente.</p>' +
+          '<p id="name-desc" class="modal__desc">' + esc(options.description || 'Digite o nome e o sobrenome do cliente.') + '</p>' +
           '<form class="modal__form" novalidate>' +
           '<label for="name-input" class="sr-only">Nome completo</label>' +
           '<input id="name-input" name="name" type="text" class="input input--lg" autocomplete="name" ' +
@@ -273,24 +273,15 @@
     var wasServed = li.dataset.status === 'served';
     li.dataset.id = client.id;
     li.dataset.status = client.status;
-    li.classList.toggle('is-next', mode === 'admin' && !!flags.isNext && !served);
-
+    
     li.querySelector('.client__num').textContent = String(flags.position);
     li.querySelector('.client__num').setAttribute('aria-label', 'Posição ' + flags.position);
     var strike = li.querySelector('.strike');
     strike.textContent = client.name;
     strike.dataset.active = String(served);
 
+    // Visual limpo: só número e nome (o horário fica registrado na planilha).
     var meta = [];
-    if (mode === 'admin') {
-      if (flags.isNext && !served) meta.push('<span class="tag">Próximo</span>');
-      meta.push(
-        '<span class="client__time">' +
-          (served ? 'Atendido às ' + utils.formatTime(client.servedAt) : 'Entrou às ' + utils.formatTime(client.createdAt)) +
-          (client.source === 'admin' ? ' · manual' : '') +
-          '</span>',
-      );
-    }
     li.querySelector('.client__meta').innerHTML = meta.join('');
 
     var check = li.querySelector('.check');

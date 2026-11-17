@@ -19,32 +19,30 @@
     />
     <link rel="stylesheet" href="../assets/css/styles.css" />
   </head>
-  <body class="page-admin">
-    <!-- Barra superior -->
-    <header class="topbar">
-      <div class="container topbar__inner">
-        <div class="topbar__mark"><img src="../assets/img/logo-mark-white.png" alt="" /></div>
-        <div class="topbar__text">
-          <p class="topbar__title" data-bind="businessName">Studio Anadison O Mágico</p>
-          <p class="topbar__sub"><i data-icon="scissors"></i> Painel do barbeiro</p>
-        </div>
-        <button type="button" id="logout-btn" class="btn btn--outline btn--sm" hidden>
-          <i data-icon="log-out"></i>
-          <span class="only-desktop">Sair</span>
-        </button>
-        <a href="../index.html" class="btn btn--outline btn--sm">
-          <i data-icon="arrow-left"></i>
-          <span class="only-desktop">Ver página do cliente</span>
-          <span class="only-mobile">Cliente</span>
-        </a>
+  <body class="page-public page-admin">
+    <!-- Cabeçalho (igual ao da página do cliente) -->
+    <header class="brand container container--narrow">
+      <div class="brand__logo">
+        <img src="../assets/img/logo-studio.jpg" width="598" height="486" alt="Logo do Studio Anadison O Mágico" data-bind="logoAlt" />
       </div>
+      <div class="brand__text">
+        <h1 class="brand__title" data-bind="businessName">Studio Anadison O Mágico</h1>
+        <p class="brand__subtitle brand__subtitle--admin"><i data-icon="scissors"></i> Painel do barbeiro</p>
+        <p class="brand__date">
+          <i data-icon="calendar-days"></i>
+          <time data-bind="date"></time>
+        </p>
+      </div>
+      <button type="button" id="logout-btn" class="brand__action" aria-label="Sair do painel" title="Sair" hidden>
+        <i data-icon="log-out"></i>
+      </button>
     </header>
 
     <!-- Login do barbeiro -->
     <main id="login-view" class="container container--narrow login-view" hidden>
       <section class="card login-card reveal" aria-labelledby="login-title">
         <div class="login-card__icon"><i data-icon="lock"></i></div>
-        <h1 id="login-title" class="section-title section-title--lg">Área do barbeiro</h1>
+        <h2 id="login-title" class="section-title section-title--lg">Área do barbeiro</h2>
         <p class="section-sub">Digite a senha para gerenciar a lista de atendimento.</p>
         <form id="login-form" class="login-form" novalidate>
           <label for="password-input" class="sr-only">Senha</label>
@@ -67,88 +65,47 @@
       </section>
     </main>
 
-    <main id="admin-view" class="container admin-layout reveal" hidden>
-      <!-- Resumo do dia -->
-      <aside id="summary" class="card admin-summary" aria-label="Resumo do dia">
-        <p class="eyebrow">Fila em andamento</p>
-        <p class="summary-date"><i data-icon="calendar-days"></i> <time data-bind="date"></time></p>
-
-        <div id="day-progress" class="progress summary-block"></div>
-
-        <dl class="summary-grid">
-          <div>
-            <dt><i data-icon="clock-3"></i> Aguardando</dt>
-            <dd data-stat="waiting">0</dd>
-          </div>
-          <div>
-            <dt><i data-icon="check-check"></i> Atendidos</dt>
-            <dd data-stat="served">0</dd>
-          </div>
-          <div>
-            <dt><i data-icon="ticket"></i> Vagas</dt>
-            <dd data-stat="available">0</dd>
-          </div>
-        </dl>
-
-        <div id="capacity" class="progress summary-block"></div>
-
-        <button type="button" id="reset-btn" class="btn btn--danger-outline btn--block">
-          <i data-icon="rotate-ccw"></i>
-          Limpar lista e iniciar nova fila
+    <!-- Painel: mesma estrutura da página do cliente, com ações -->
+    <main id="admin-view" class="container container--narrow stack" hidden>
+      <section class="register reveal" style="--delay: 60ms" aria-label="Cadastro">
+        <button type="button" id="open-register" class="btn btn--primary btn--xl">
+          <i data-icon="user-plus"></i>
+          Cadastrar nome
         </button>
-      </aside>
-
-      <!-- Lista de atendimentos -->
-      <section class="card admin-list" aria-labelledby="admin-list-title">
-        <div class="admin-list__head">
-          <h2 id="admin-list-title" class="section-title">Atendimentos</h2>
-          <div id="tabs" class="tabs" role="tablist" aria-label="Filtrar clientes">
-            <button type="button" role="tab" data-filter="all" aria-selected="true">Todos <span data-count="total">0</span></button>
-            <button type="button" role="tab" data-filter="waiting" aria-selected="false">
-              Aguardando <span data-count="waiting">0</span>
-            </button>
-            <button type="button" role="tab" data-filter="served" aria-selected="false">
-              Atendidos <span data-count="served">0</span>
-            </button>
-          </div>
-        </div>
-
-        <form id="admin-form" class="admin-form" novalidate>
-          <div class="field">
-            <label for="admin-name" class="sr-only">Nome do cliente</label>
-            <input
-              id="admin-name"
-              name="name"
-              type="text"
-              class="input"
-              autocomplete="off"
-              autocapitalize="words"
-              enterkeyhint="done"
-              placeholder="Adicionar cliente manualmente"
-            />
-            <p id="admin-name-error" class="field-error" role="alert" hidden></p>
-          </div>
-          <button type="submit" class="btn btn--soft">
-            <i data-icon="user-plus"></i>
-            Adicionar
-          </button>
-        </form>
-
-        <p id="full-notice" class="notice notice--danger notice--compact" hidden>
+        <p id="full-notice" class="register__full" role="status" hidden>
           <i data-icon="lock"></i>
-          <span><strong>Lotado.</strong> Remova um cliente para liberar vaga.</span>
+          Lista completa. Remova um nome para liberar vaga.
         </p>
+      </section>
 
-        <p class="section-hint hint-gap">Toque no quadrado quando concluir o atendimento.</p>
+      <section class="card list-card reveal" aria-labelledby="list-title" style="--delay: 120ms">
+        <div class="list-head">
+          <div>
+            <h2 id="list-title" class="section-title">Lista de hoje</h2>
+            <p id="list-summary" class="section-hint">Toque no quadrado ao concluir</p>
+          </div>
+          <span id="count-pill" class="count-pill" title="Vagas preenchidas">0/30</span>
+        </div>
 
         <ol id="client-list" class="client-list" aria-label="Lista de atendimento" hidden></ol>
 
         <div id="empty-state" class="empty">
           <div class="empty__icon"><i data-icon="inbox"></i></div>
-          <p id="empty-title" class="empty__title">Nenhum cliente na fila</p>
-          <p id="empty-desc" class="empty__text"></p>
+          <p class="empty__title">Nenhum nome ainda</p>
+          <p class="empty__text">Os nomes aparecem aqui assim que forem cadastrados.</p>
         </div>
       </section>
+
+      <div class="admin-footer">
+        <button type="button" id="reset-btn" class="link-danger">
+          <i data-icon="rotate-ccw"></i>
+          Limpar lista
+        </button>
+        <a href="../index.html" class="link-muted">
+          Ver página do cliente
+          <i data-icon="arrow-right"></i>
+        </a>
+      </div>
     </main>
 
     <script src="../assets/js/config.js"></script>

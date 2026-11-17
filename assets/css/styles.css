@@ -290,10 +290,6 @@ a {
     width: 36px;
     height: 36px;
   }
-  .check {
-    width: 48px;
-    height: 48px;
-  }
 }
 
 /* ---------- Tipografia de seção ---------- */
@@ -406,79 +402,71 @@ a {
   }
 }
 
-/* ---------- Barra superior (admin) ---------- */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  border-bottom: 1px solid rgb(255 255 255 / 0.06);
-  background: rgb(11 11 12 / 0.8);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  padding-top: env(safe-area-inset-top);
-}
-
-.topbar__inner {
+/* Painel do barbeiro: identificação e botão de sair no cabeçalho */
+.brand__subtitle--admin {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  gap: 6px;
 }
-
-.topbar__mark {
+.brand__subtitle--admin .icon {
+  font-size: 12px;
+}
+.brand__action {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
   flex-shrink: 0;
+  margin-left: auto;
+  align-self: flex-start;
   border: 1px solid var(--line-strong);
   border-radius: 12px;
-  background: var(--graphite-900);
+  background: rgb(23 23 26 / 0.7);
+  font-size: 16px;
+  color: var(--silver-300);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
-
-.topbar__mark img {
-  height: 20px;
-  width: auto;
-}
-
-.topbar__text {
-  min-width: 0;
-  flex: 1;
-}
-
-.topbar__title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
+.brand__action:hover {
+  background: rgb(255 255 255 / 0.06);
   color: var(--white);
 }
 
-.topbar__sub {
+.admin-footer {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px max(24px, env(safe-area-inset-bottom));
+}
+.link-danger,
+.link-muted {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: var(--silver-400);
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  transition: color 0.2s ease;
 }
-
-.only-desktop {
-  display: none;
+.link-danger {
+  color: rgb(251 113 133 / 0.8);
 }
-
-@media (min-width: 640px) {
-  .topbar__title {
-    font-size: 16px;
-  }
-  .only-desktop {
-    display: inline;
-  }
-  .only-mobile {
-    display: none;
-  }
+.link-danger:hover {
+  color: var(--danger);
+}
+.link-muted {
+  margin-left: auto;
+  color: var(--silver-500);
+}
+.link-muted:hover {
+  color: var(--white);
+}
+.link-danger .icon,
+.link-muted .icon {
+  font-size: 13px;
 }
 
 /* ---------- Botões ---------- */
@@ -942,40 +930,63 @@ a {
   padding-left: 12px;
 }
 
-/* Checkbox grande de atendimento */
+/* Checkbox de atendimento (painel do barbeiro): discreto, com área de toque de 44px */
 .check {
+  position: relative;
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  border: 2px solid rgb(142 142 150 / 0.6);
-  border-radius: 12px;
+  margin: -6px -4px -6px -6px;
+  border: 0;
   background: transparent;
   color: transparent;
+}
+.check::before {
+  content: '';
+  position: absolute;
+  inset: 11px;
+  border: 1.5px solid rgb(198 198 204 / 0.45);
+  border-radius: 7px;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
-    color 0.2s ease,
     transform 0.15s ease;
 }
-.check:hover {
+.check:hover::before {
   border-color: var(--silver-200);
   background: rgb(255 255 255 / 0.04);
 }
-.check:active {
+.check:active::before {
   transform: scale(0.9);
 }
-.check[aria-checked='true'] {
+.check[aria-checked='true']::before {
   border-color: var(--success);
   background: var(--success);
-  color: var(--ink);
-}
-.check.pop {
-  animation: check-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 .check__icon {
-  font-size: 22px;
+  position: relative;
+  font-size: 14px;
+  color: transparent;
+  transition: color 0.15s ease;
+}
+.check[aria-checked='true'] .check__icon {
+  color: var(--ink);
+}
+.check.pop::before {
+  animation: check-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Painel: linhas com o mesmo visual da página do cliente */
+.page-admin .client {
+  padding-left: 8px;
+}
+.page-admin .icon-btn {
+  width: 40px;
+  height: 40px;
+  margin-right: -2px;
+  color: rgb(142 142 150 / 0.75);
 }
 
 /* ---------- Estado vazio ---------- */
@@ -1052,160 +1063,6 @@ a {
   color: var(--silver-500);
 }
 
-/* ---------- Painel do barbeiro ---------- */
-.admin-layout {
-  display: grid;
-  gap: 20px;
-  padding-top: 20px;
-  padding-bottom: max(32px, env(safe-area-inset-bottom));
-}
-
-.admin-summary {
-  order: 2;
-  padding: 20px;
-}
-
-.admin-list {
-  order: 1;
-}
-
-.summary-date {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--silver-200);
-}
-.summary-date .icon {
-  font-size: 14px;
-  color: var(--silver-400);
-}
-
-.summary-block {
-  margin-top: 20px;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin-top: 20px;
-  border: 1px solid rgb(255 255 255 / 0.06);
-  border-radius: 12px;
-  background: rgb(17 17 19 / 0.5);
-}
-.summary-grid > div {
-  padding: 12px 8px;
-  text-align: center;
-}
-.summary-grid > div + div {
-  border-left: 1px solid rgb(255 255 255 / 0.06);
-}
-.summary-grid dt {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--silver-500);
-}
-.summary-grid dd {
-  margin-top: 4px;
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--white);
-}
-
-.admin-summary .btn--block {
-  margin-top: 20px;
-}
-
-.admin-list__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.tabs {
-  display: flex;
-  padding: 4px;
-  border-radius: 12px;
-  background: rgb(17 17 19 / 0.7);
-}
-.tabs button {
-  padding: 6px 12px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--silver-400);
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
-.tabs button:hover {
-  color: var(--white);
-}
-.tabs button[aria-selected='true'] {
-  background: rgb(255 255 255 / 0.1);
-  color: var(--white);
-}
-.tabs span {
-  margin-left: 4px;
-  font-variant-numeric: tabular-nums;
-  color: var(--silver-500);
-}
-
-.admin-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.notice--compact {
-  margin-bottom: 16px;
-}
-
-.hint-gap {
-  margin-bottom: 12px;
-  padding: 0 4px;
-}
-
-@media (min-width: 640px) {
-  .admin-layout {
-    padding-top: 32px;
-  }
-  .admin-form {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-}
-
-@media (min-width: 1024px) {
-  .admin-layout {
-    grid-template-columns: minmax(0, 1fr) 340px;
-    align-items: start;
-  }
-  .admin-summary {
-    position: sticky;
-    top: 96px;
-    order: 2;
-  }
-  .admin-list {
-    order: 1;
-  }
-}
-
 /* ---------- Avisos fixos (modo demonstração / sem conexão) ---------- */
 .banner {
   display: flex;
@@ -1238,7 +1095,7 @@ a {
 
 /* ---------- Login do barbeiro ---------- */
 .login-view {
-  padding-top: 32px;
+  padding-top: 18px;
   padding-bottom: 40px;
 }
 .login-card {
